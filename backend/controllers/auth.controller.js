@@ -37,12 +37,12 @@ export const signup = async (req, res) => {
     });
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "10",
+      expiresIn: "7d",
     });
 
     res.cookie("jwt", token, {
       httpOnly: true,
-      maxAge: 1000 * 60 * 10,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
@@ -77,11 +77,11 @@ export const login = async (req, res) => {
     }
 
     const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
-      expiresIn: "10",
+      expiresIn: "7d",
     });
     res.cookie("jwt", token, {
       httpOnly: true,
-      maxAge: 1000 * 60 * 10,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
     });
