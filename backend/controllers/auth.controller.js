@@ -1,6 +1,7 @@
 import User from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { sendWelcomeEmail } from "../emails/emailHandlers.js";
 
 export const signup = async (req, res) => {
   try {
@@ -61,8 +62,50 @@ export const signup = async (req, res) => {
   }
 };
 export const login = async (req, res) => {
-  res.send("login");
+  const { username, password } = req.body;
+  try {
+    if (!username || !password) {
+      return res.status(400).send("Please fill all the fields");
+    }
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(400).send("Invalid Credentials");
+    }
+    const isMatch = await bcrypt.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(400).send("Invalid Credentials");
+    }
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+      expiresIn: "10",
+    });
+    res.cookie("jwt", token, {
+      httpOnly: true,
+      maxAge: 1000 * 60 * 10,
+      sameSite: "strict",
+      secure: process.env.NODE_ENV === "production",
+    });
+
+    res.status(200).json({ message: "User logged in successfully" });
+  } catch (error) {
+    console.log("Error in login controller: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
 export const logout = async (req, res) => {
-  res.send("logout");
+  try {
+    res.clearCookie("jwt");
+    res.status(200).json({ message: "User logged out successfully" });
+  } catch (error) {
+    console.log(`Error in logout controller: ${error}`);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+export const getCurrentUser = async (req, res) => {
+  try {
+    res.json(req.user);
+  } catch (error) {
+    console.log("Error in getCurrentUser controller: ", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
 };
