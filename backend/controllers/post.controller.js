@@ -129,3 +129,31 @@ export const createComment = async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 };
+export const likePost = async (req, res) => {
+  try {
+    const postId = req.params.id;
+    const post = await Post.findById(postId);
+    const userId = req.user._id;
+
+    if (post.likes.includes(userId)) {
+      post.likes = post.likes.filter(
+        (id) => id.toString() !== userId.toString()
+      );
+    } else {
+      post.likes.push(userId);
+      if (post.author.toString() !== userId.toString()) {
+        const newNotification = new Notification({
+          recipient: post.author,
+          type: "like",
+          relatedUser: userId,
+          relatedPost: postId,
+        });
+        await newNotification.save();
+      }
+    }
+    await post.save();
+  } catch (error) {
+    console.error("Error in likePost controller:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
