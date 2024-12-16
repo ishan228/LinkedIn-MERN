@@ -7,12 +7,19 @@ import notificationRoutes from "./routes/notification.routes.js";
 import connectionRoutes from "./routes/connection.route.js";
 import { connectDB } from "./lib/db/db.js";
 import cookieParser from "cookie-parser";
+import cors from "cors";
 
 dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT;
 
+app.use(
+  cors({
+    origin: "http://localhost:5173",
+    credentials: true,
+  })
+);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
